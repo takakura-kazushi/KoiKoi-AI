@@ -1,4 +1,4 @@
-torch == 1.11.0 # 論文に依りたかったがpythonのversion 3.10では入らないので、これ
+torch == 1.8.0 # 論文に依りたかったがpythonのversion 3.10では入らないので、これ
 numpy <= 1.22.0 # 時期による
 matplotlib<=3.5.1 
 networkx<=2.8

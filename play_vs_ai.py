@@ -53,7 +53,7 @@ import torch # 1.8.1
 # window = gui.UpdateGameStatusGUI(window, game_state)
 
 def print_game_status(game_state):
-    print(f"Round: {game_state.round} / {game_state.round_data}")
+    print(f"Round: {game_state.round} / {game_state.round_total}")
     print(f"{game_state.player_name[1]}: {game_state.point[1]} points,{game_state.player_name[2]}: {game_state.point[2]} points ")
     print("-----------------------------------------------")
     
