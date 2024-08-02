@@ -65,7 +65,7 @@ class KoiKoiRoundStateBase():
         self.winner = None
         self.exhausted = False
         self.log = {}
-        self.silence = True
+        self.silence = False
         
         self.turn_point = 0
         
@@ -250,6 +250,7 @@ class KoiKoiRoundStateBase():
         return self.state if self.silence else self.__call__()
 
     def yaku(self,player):
+
         yaku = []
         pile = set([tuple(card) for card in self.pile[player]])
         koikoi_num = self.koikoi_num[player]
@@ -406,6 +407,8 @@ class KoiKoiRoundStateBase():
             print('Round Point: You '+str(self.round_point[view])+\
                   ', Opponent '+str(self.round_point[op_view]))
         return
+
+
         
     
 class KoiKoiGameStateBase():
@@ -430,6 +433,9 @@ class KoiKoiGameStateBase():
         self.__init_record()
         
     def new_game(self):
+        """
+        次のgameへいく
+        """
         self.__init__(round_num=1, round_total=self.round_total, 
                       init_point=self.init_point, init_dealer=self.init_dealer,
                       player_name=[self.player_name[1],self.player_name[2]], 
@@ -437,6 +443,9 @@ class KoiKoiGameStateBase():
         return
         
     def new_round(self):
+        """
+        roundの勝者を決めて次のラウンドへ
+        """
         assert self.round_state.state == 'round-over'
         self.point[1] = self.point[1]+self.round_state.round_point[1]
         self.point[2] = self.point[2]+self.round_state.round_point[2]
@@ -451,6 +460,10 @@ class KoiKoiGameStateBase():
         return
     
     def __init_record(self):
+        """
+        レコードのヘッドを作成する
+        """
+
         self.log['info'] = {'startTime':time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime()), 
                             'endTime':None,
                             'player1Name':self.player_name[1],
@@ -465,10 +478,13 @@ class KoiKoiGameStateBase():
         return
     
     def __round_result_record(self):
+        """ラウンドの結果を記録する"""
         self.log['record']['round'+str(self.round)] = self.round_state.log
         return
     
     def __game_result_record(self):
+        """ゲーム結果を記録する"""
+        
         self.log['info']['endTime'] = time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime())
         self.log['result'] = {'isOver':True, 'gameWinner':self.winner,
                               'player1EndPts':self.point[1], "player2EndPts":self.point[2]}
