@@ -314,7 +314,7 @@ if __name__ == '__main__':
                 loss = criterion(q_values, reward_batch)
                 optimizer[key].zero_grad()
                 loss.backward()
-                optimizer[key].step()
+                optimizer[key]()
                 # record
                 train_loss.append(loss.cpu().data.item())
             print_log(f'{time_str()} {key} net, {step+1} steps, loss = {np.mean(train_loss)}', log_path)
