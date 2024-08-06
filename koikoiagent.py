@@ -7,25 +7,16 @@ class Agent():
     def __init__(self):
         pass 
     
-    def auto_random_action(self, game_state):
-        action_output = None
-        if game_state.round_state.wait_action == True:
-            state = game_state.round_state.state
-            if state == 'discard':
-                turn_player = game_state.round_state.turn_player
-                action_output = random.choice(game_state.round_state.hand[turn_player])
-            elif state in ['discard-pick', 'draw-pick']:
-                action_output = random.choice(game_state.round_state.pairing_card)
-            elif state == 'koikoi':
-                action_output = random.choice([True, False])
-        return action_output 
+
     
-    def auto_action(self,game_state):
+    def auto_action(self,legal_action):
         
-        return self.auto_random_action(game_state)
+        return random.choice(legal_action)
+    
+
         
 
-
+ 
 class Arena():
     def __init__(self, agent_1, agent_2, game_state_kwargs={}):
         """
@@ -72,8 +63,6 @@ class Arena():
     def __duel(self):
         """
         ai vs ai
-        
-        
         """
         
         self.game_state = koikoigame.KoiKoiGameState(**self.game_state_kwargs)
