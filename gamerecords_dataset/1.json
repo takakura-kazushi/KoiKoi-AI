@@ -36,6 +36,8 @@
                             "turn8": {"playerInTurn": 1, "discardCard": [9, 3], "collectCard": [], "drawCard": [1, 1], "collectCard2": [], "isKoiKoi": null}, "turn9": {"playerInTurn": 2, "discardCard": [1, 3], "collectCard": [[1, 3], [1, 1]], "drawCard": [11, 1], "collectCard2": [], "isKoiKoi": null}, "turn10": {"playerInTurn": 1, "discardCard": [4, 2], "collectCard": [], "drawCard": [1, 2], "collectCard2": [], "isKoiKoi": null}, "turn11": {"playerInTurn": 2, "discardCard": [11, 4], "collectCard": [[11, 4], [11, 1]], "drawCard": [4, 1], "collectCard2": [[4, 1], [4, 2]], "isKoiKoi": null}, 
                             "turn12": {"playerInTurn": 1, "discardCard": [8, 1], "collectCard": [], "drawCard": [7, 3], "collectCard2": [[7, 3], [7, 4]], "isKoiKoi": null}, "turn13": {"playerInTurn": 2, "discardCard": [5, 2], "collectCard": [], "drawCard": [6, 1], "collectCard2": [[6, 1], [6, 4]], "isKoiKoi": null},
                             "turn14": {"playerInTurn": 1, "discardCard": [3, 2], "collectCard": [], "drawCard": [8, 4], "collectCard2": [[8, 4], [8, 1]], "isKoiKoi": false}}, 
+
+                            
                             "round2": {
                             "basic": {
                                 "Dealer": 1, 

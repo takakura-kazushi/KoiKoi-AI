@@ -87,7 +87,7 @@ class KoiKoiRoundStateBase():
         # ログ
         self.log = {}
         # logを表示する Ture->ログの非表示 False->ログの表示
-        self.silence = False
+        self.silence =False
         # ターンでのポイント
         self.turn_point = 0
         
@@ -105,7 +105,7 @@ class KoiKoiRoundStateBase():
     @property
     def turn_player(self):
         """
-        ターンでのplayerをきめる
+        ターンでの
         """
         return 1 if (self.turn_16+self.dealer)%2==0 else 2
     
@@ -618,8 +618,7 @@ class KoiKoiGameStateBase():
         
     def new_game(self):
         """
-        次のラウンドへ行く
-        
+        新しいゲームを開始する
         """
         self.__init__(round_num=1, round_total=self.round_total, 
                       init_point=self.init_point, init_dealer=self.init_dealer,
@@ -678,6 +677,9 @@ class KoiKoiGameStateBase():
         return
     
     def __save_record(self):
+        """
+        ゲーム結果を記録する
+        """
         filename = self.record_path + self.log['info']['startTime'] + ' ' \
             + self.log['info']['player1Name'] + ' vs ' + self.log['info']['player2Name'] +'.json'
         with open(filename, 'w') as f:
@@ -685,6 +687,9 @@ class KoiKoiGameStateBase():
         return    
 
     def __call__(self):
+        """
+        ゲーム結果をcallする
+        """
         print('-----------------------------------------------')
         print('Round: '+str(self.round)+' / '+str(self.round_total))
         print(self.log['info']['player1Name']+': '+str(self.point[1])+', '+\
@@ -805,7 +810,7 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
     def action_mask(self):
         """
         プロパティ
-            mask : NDArray  one-hot化されたベクトル
+            mask : NDArray  one-hot化されたnumpy配列を返す
         """
         if self.state == 'discard':
             mask = card_to_multi_hot(self.hand[self.turn_player])
@@ -926,6 +931,7 @@ class KoiKoiGameState(KoiKoiGameStateBase):
     @property
     def game_status_array(self):
         
+        
         def feature_tuple(x, power=[0.5,1,2], weight=[1,1,1]):
             return np.abs(float(x)) ** np.array(power) * np.sign(x) * np.array(weight)
         
@@ -987,5 +993,21 @@ class KoiKoiGameState(KoiKoiGameStateBase):
             f = np.hstack([f_token,f])
         f = torch.Tensor(f)
         return f
+    
+    @property
+    def observation(self):
+        """
+        一回毎にobesevation可能な量とAction可能なカードのリストを返す変数を与えるプロパティ
+        """
+        f = {}
+        f['hand'] = self.hand
+        f['turn'] = self.turn_16
+        f['round'] = self.round
+        f['']
+        
+        
+        
+    
+
 
     

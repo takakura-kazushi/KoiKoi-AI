@@ -14,6 +14,7 @@ import koikoigame
 
 class Agent():
     def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=[0.,0.,0.,0.]):
+        
         self.model = {'discard':discard_model, 'discard-pick':pick_model, 
                       'draw-pick':pick_model, 'koikoi':koikoi_model}
         for key in self.model.keys():
