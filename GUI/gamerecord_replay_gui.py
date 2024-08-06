@@ -7,7 +7,7 @@ Created on Mon Apr 27 12:36:30 2020
 """
 
 import PySimpleGUI as sg
-from gamerecord_replay_func import CardClassify
+from GUI.gamerecord_replay_func import CardClassify
 
 def InitReplayGUI():
     sg.theme('Material1')

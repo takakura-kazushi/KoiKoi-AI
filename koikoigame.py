@@ -20,6 +20,13 @@ class DefaultVar():
 
 
 def card_to_multi_hot(card_list):
+    """
+    入力 : 
+        card_list : list カードの集合
+    出力 :
+        card_multi_hot : list カードをonehot化している
+    """
+    
     card_multi_hot = [0 for i in range(48)]
     for card in card_list:
         card_multi_hot[(card[0]-1)*4+(card[1]-1)] = 1
@@ -51,27 +58,44 @@ class KoiKoiCard():
 class KoiKoiRoundStateBase():
     def __init__(self, dealer=None):
         assert dealer in [1,2,None]
+        # 手持ちのカード
         self.hand = {1:[], 2:[]}
+        # フィールドに出されているカード
         self.pile = {1:[], 2:[]}
+        # フィールドにスロットされているカード
         self.field_slot = []
+        # フィールドに重ねされているカード
         self.stock = []
         
+        # 見せるカード
         self.show = []
+        # 収集可能なカード
         self.collect = []
         
+        # ターンを数える変数 16ターンまで数え上げる
         self.turn_16 = 1
+        # dealerを決めるカード
         self.dealer = random.randint(1,2) if dealer==None else dealer
+        # koikoiがいつ行われたかを数える
         self.koikoi = {1:[0,0,0,0,0,0,0,0], 2:[0,0,0,0,0,0,0,0]}
+        # 前回尾勝者
         self.winner = None
-        self.exhausted = False
-        self.log = {}
-        self.silence = False
         
+        
+        self.exhausted = False
+        
+        # ログ
+        self.log = {}
+        # logを表示する Ture->ログの非表示 False->ログの表示
+        self.silence = False
+        # ターンでのポイント
         self.turn_point = 0
         
         # action
         self.state = 'init'
-        self.wait_action = False        
+        # 待ち
+        self.wait_action = False      
+        # カードをくばる  
         self.__deal_card()
     
     def new_round(self):
@@ -80,6 +104,9 @@ class KoiKoiRoundStateBase():
     
     @property
     def turn_player(self):
+        """
+        ターンでのplayerをきめる
+        """
         return 1 if (self.turn_16+self.dealer)%2==0 else 2
     
     @property
@@ -88,22 +115,35 @@ class KoiKoiRoundStateBase():
     
     @property
     def turn_8(self):
+        # 相手番が残っているのかを判定するために用いるプロパティ
         return (self.turn_16+1)//2
     
     @property
     def field(self):
+        """
+        場にあるカード
+        """
         return sorted([slot for slot in self.field_slot if slot!=[0,0]])
     
     @property
     def unseen_card(self):
+        """
+        見ることができないカード
+        """
         return {1:(self.stock+self.hand[2]), 2:(self.stock+self.hand[1])}
     
     @property
     def pairing_card(self):
+        """
+        見せたカードとペアにすることができるカードのリストを返すプロパティ
+        """
         return [card for card in self.field if card[0]==self.show[0][0]]
     
     @property
     def field_collect(self):
+        """
+        
+        """
         collect_card = self.collect.copy()
         if self.show[0] in collect_card:
             collect_card.remove(self.show[0])
@@ -111,14 +151,25 @@ class KoiKoiRoundStateBase():
     
     @property
     def koikoi_num(self):
+        """
+        コイコイの行った回数を見せるプロパティ
+        """
         return {1:sum(self.koikoi[1]), 2:sum(self.koikoi[2])}
     
     @property
     def round_over(self):
+        """
+        ラウンドの修了時のstateを返すプロパティ
+        """
         return self.state == 'round-over'
     
     @property
     def round_point(self):
+        """
+        ラウンドでのポイントを返すメソッド
+        ゲーム終了時に決着がつかなかった場合には、dealerの方に1ポイント入り残り一方に-1ポイントが入る
+        他は役のポイントが入る
+        """
         # round not over
         if self.winner == None:
             return {1:None, 2:None}
@@ -132,6 +183,11 @@ class KoiKoiRoundStateBase():
             return {1:-self.yaku_point(2), 2:self.yaku_point(2)}
     
     def __deal_card(self):
+        """
+        __deal_card(self):
+            カードを配る
+            4枚同じスーツのカードがあった場合には配り直し
+        """
         # action
         while True:
             card = [[ii+1,jj+1] for ii in range(12) for jj in range (4)]
@@ -156,27 +212,53 @@ class KoiKoiRoundStateBase():
         return
     
     def __collect_card(self,card):
+        """
+        場から回収することができるカードを回収するメソッド
+            - ペアになるカードが存在しない場合場にだす
+            - 1枚ペアにするか3枚取れるカードがあるときには、それらをすべて取って残ったカードには[0,0]を入れる
+            - 二枚のカードの場合は選択したカードを入れて、場にあるカードに[0,0]を入れる
+        --------------------------
+        入力 : 
+            card : list[int,int]
+        出力 :
+            なし
+        """
+        
         if len(self.pairing_card) == 0:
             self.collect = []
+            # ペアになるカードが存在しない場合場にカードを出す
             self.field_slot[self.field_slot.index([0,0])] = self.show[0]
         elif len(self.pairing_card) in [1,3]:
+            # 1枚ペアにするか3枚取れるカードがあるときには、それらをすべて取って残ったカードには[0,0]を入れる
             self.collect = self.show + self.pairing_card
             for paired_card in self.pairing_card:
                 self.field_slot[self.field_slot.index(paired_card)] = [0,0]
             self.pile[self.turn_player].extend(self.collect)
         else:
+            # 二枚のカードの場合は選択したカードを入れて、場にあるカードに[0,0]を入れる
             self.collect = self.show + [card]
             self.field_slot[self.field_slot.index(card)] = [0,0]
             self.pile[self.turn_player].extend(self.collect)
         return
     
-    def discard(self, card=None):        
+    def discard(self, card=None):
+        """
+        カードを捨てるときの卓の操作
+        次はdiscard_pickに移る
+        --------------------
+        入力
+            card : list[int]
+        出力
+            self.state
+            __call__
+        """  
         assert self.state == 'discard'
         assert card in self.hand[self.turn_player]
         # action
         self.turn_point = self.yaku_point(self.turn_player)
         ind = self.hand[self.turn_player].index(card)
         self.show = [self.hand[self.turn_player].pop(ind)]
+        
         # next state
         self.__write_log()
         self.state = 'discard-pick'
@@ -185,6 +267,15 @@ class KoiKoiRoundStateBase():
         return self.state if self.silence else self.__call__()
         
     def discard_pick(self, card=None):
+        """
+        自分の手札から捨てたカードと場のカードからペアになるカードを取り出す操作
+        -------------------------------
+        入力
+            card : list[int]
+        出力
+            self.state
+        """
+        
         assert self.state == 'discard-pick'
         assert (card in self.pairing_card) if self.wait_action else (card == None)
         # action
@@ -196,7 +287,16 @@ class KoiKoiRoundStateBase():
         
         return self.state if self.silence else self.__call__()
         
-    def draw(self, card=None):
+    def draw(self,card=None):
+        """
+        山札からカードを引く -> Next action draw pick
+        ----------------
+        入力:
+            card=None 
+        出力:
+            self.state
+        """
+        
         assert self.state == 'draw'
         # action
         self.show = [self.stock.pop()]
@@ -208,6 +308,15 @@ class KoiKoiRoundStateBase():
         return self.state if self.silence else self.__call__()
         
     def draw_pick(self, card=None):
+        """
+        山札から引いたカードを引く動作をする
+        -----------------------
+        入力: 
+            card : 山札から引いたカード
+        出力:
+            self.state : 現在状況 (koikoi)
+        """
+        
         assert self.state == 'draw-pick'
         assert (card in self.pairing_card) if self.wait_action else (card == None)
         # action
@@ -215,20 +324,35 @@ class KoiKoiRoundStateBase():
         # next state
         self.__write_log()
         self.state = 'koikoi'
+        # 役のポイントが現在よりも高くかつまだターンが残ていれば、wait_actiuon = Ture
         self.wait_action = (self.yaku_point(self.turn_player) > self.turn_point) and (self.turn_8 < 8)
         
         return self.state if self.silence else self.__call__()
     
     def claim_koikoi(self, is_koikoi=None):
+        """
+        koikoiを宣言するためのメソッド
+        コイコイが宣言されないならば、ゲーム続行
+        コイコイが宣言できないならゲーム終了
+        ゲームが16ラウンドになっていたらそこで試合終了
+        --------------------------
+        入力:
+            is_koikoi = None : bool
+        出力:
+            state
+        """
+        
         assert self.state == 'koikoi'
         assert (type(is_koikoi) == bool) if self.wait_action else (is_koikoi == None)
         # action
+        # ターンが残っていないのならばkoikoiはできない
         if (self.yaku_point(self.turn_player) > self.turn_point) and (self.turn_8 == 8):
             is_koikoi = False
         self.koikoi[self.turn_player][self.turn_8-1] = int(is_koikoi==True)
         self.__write_log(is_koikoi)
         
         # next state
+        # コイコイしないならば
         if is_koikoi == False:
             self.state = 'round-over'
             self.wait_action = False
@@ -250,6 +374,16 @@ class KoiKoiRoundStateBase():
         return self.state if self.silence else self.__call__()
 
     def yaku(self,player):
+        
+        """
+        コイコイの役をplayer毎に判定することを起こす
+        ----------------------------
+        入力:
+            player : int
+        出力:
+            yaku : tuple 役名の判定
+        
+        """
 
         yaku = []
         pile = set([tuple(card) for card in self.pile[player]])
@@ -299,6 +433,17 @@ class KoiKoiRoundStateBase():
         return yaku
     
     def yaku_point(self, player):
+        """
+        役のポイントを計算する
+        -------------------------
+        入力 : 
+            player : int
+        出力 : 
+            yaku_point : int
+        
+        """
+        # 役のポイント部分 yaku_point部分を抜き出す
+        # koikoi以外を抜き出すようにする
         yaku_point = sum([yaku[2] for yaku in self.yaku(player) if yaku[1]!='Koi-Koi'])
         koikoi_num = self.koikoi_num[player]
         if koikoi_num <= 3:
@@ -309,6 +454,15 @@ class KoiKoiRoundStateBase():
         return yaku_point
     
     def __write_log(self, content=None):
+        """
+        __write_log
+        入力 : 
+            content : bool コイコイが宣言されればcontentになる。
+        出力 : 
+            なし
+        """
+        
+        
         turn = str(self.turn_16)
         if self.state == 'init':
             self.log['basic'] = {}
@@ -338,6 +492,14 @@ class KoiKoiRoundStateBase():
         return
     
     def __call__(self, view=None):
+        """
+        今の状態をprintするメソッド
+        -------------------------
+        入力 : 
+            view = None : 
+        出力 : 
+            なし
+        """
         view = self.turn_player if view == None else view
         op_view = 3-view
         pile = set([tuple(card) for card in self.pile[view]])
@@ -410,31 +572,54 @@ class KoiKoiRoundStateBase():
 
 
         
-    
+# koikoiのStateのBaselineコード
 class KoiKoiGameStateBase():
     def __init__(self, round_num=1, round_total=DefaultVar.DEFAULT_ROUND_TOTAL,
                  init_point=[DefaultVar.DEFAULT_INIT_POINT,DefaultVar.DEFAULT_INIT_POINT],
                  init_dealer=None, player_name=['Player1','Player2'], 
                  record_path='', save_record=False):
+        """
+        入力変数 : 
+                round_num   : int  ラウンドの回数
+                round_total : int  ラウンドをどれだけ行うか？
+                init point  : list[int,int]  初期に持っているポイント
+                init_dealer : int  最初に行うdealerの量
+                player_name : list プレイヤー名
+                record_path : str  レコードを記録するときのパス名
+                save_record : bool レコードを保存するかどうか 規定値 False
+        """
         
+        
+        # round_total
         self.round_total = round_total
+        # 初期の持ち点
         self.init_point = init_point
-        self.init_dealer = init_dealer        
+        # init_dealer
+        self.init_dealer = init_dealer
+        # player_name
         self.player_name = {1:player_name[0], 2:player_name[1]}
+        # recordの格納先
         self.record_path = record_path
+        # recordを作成するかどうか？
         self.save_record = save_record
-        
+        # ラウンドの状態のインスタンス
         self.round_state = KoiKoiRoundState(dealer=self.init_dealer)
+        # ラウンドを格納する変数
         self.round = round_num
+        # 最初に持つべきポイント
         self.point = {1:init_point[0],2:init_point[1]}
+        # gameoverならばTure
         self.game_over = False
+        # 勝者
         self.winner = None
+        # logのインスタンス
         self.log = {}
         self.__init_record()
         
     def new_game(self):
         """
-        次のgameへいく
+        次のラウンドへ行く
+        
         """
         self.__init__(round_num=1, round_total=self.round_total, 
                       init_point=self.init_point, init_dealer=self.init_dealer,
@@ -509,14 +694,15 @@ class KoiKoiGameStateBase():
         print('-----------------------------------------------')
         return
 
-
-# class KoiKoiKoiRoundState(KoiKoiRoundStateBase):
-#     pass
-       
+# コイコイのラウンドの関数
+# 各状況ごとにStateを返すようになっている。
 class KoiKoiRoundState(KoiKoiRoundStateBase):
+    # KoiKoiのRoundStateBaseを継承したクラス
     
     def __init__(self, dealer=None):
+        # スーパークラスを継承する
         super().__init__(dealer)
+        
         self.card_log_dict = {}
         self.__write_card_log_array('init')
     
@@ -541,6 +727,11 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
         return output
     
     def step(self, action):
+        """
+        入力 : 
+            action : list card
+        
+        """
         assert self.state in ['discard','discard-pick','draw','draw-pick','koikoi']
         if self.state == 'discard':
             self.discard(action)
@@ -612,6 +803,10 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
     
     @property
     def action_mask(self):
+        """
+        プロパティ
+            mask : NDArray  one-hot化されたベクトル
+        """
         if self.state == 'discard':
             mask = card_to_multi_hot(self.hand[self.turn_player])
         elif self.state in ['discard-pick', 'draw-pick']:
@@ -624,12 +819,18 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
     
     @property
     def card_log_array(self):
+        """
+        card_log_arrayについて
+        """
         turn_list = [x for x in range(self.turn_16,0,-1)] + [x for x in range(self.turn_16+1,17)]
         f_array = np.vstack([f for turn in turn_list for _,f in self.card_log_dict[turn].items()])   
         return f_array
     
     @property
     def card_suit_array(self):
+        """
+        suit_array
+        """
         f_array = np.zeros([12,48])
         for ii in range(12):
             f_array[ii,4*ii:4*ii+4] = 1
@@ -719,6 +920,7 @@ class KoiKoiRoundState(KoiKoiRoundStateBase):
         return f_array
     
     
+# KoikoigameのKoikoiState
 class KoiKoiGameState(KoiKoiGameStateBase):
     
     @property

@@ -14,8 +14,8 @@ import os.path
 import json
 import sys
 
-from gamerecord_replay_func import checkYaku, UpdateBoardCard
-import gamerecord_replay_gui as GUI
+from GUI.gamerecord_replay_func import checkYaku, UpdateBoardCard
+import GUI.gamerecord_replay_gui as GUI
 
 playerView = 1 # 1 or 2
 startRound = 1 # 1 to 8 (if exist)
