@@ -80,6 +80,17 @@ class Agent():
         
 class Arena():
     def __init__(self, agent_1, agent_2, game_state_kwargs={}):
+        """
+        agentを戦わせる
+        -----------------------------
+        入力 : 
+            agent_1 : エージェント1
+            agent_2 : エージェント2
+            game_state_kwaegs : dict
+        出力 :
+            無し
+        """
+        
         self.agent_1 = agent_1
         self.agent_2 = agent_2
         self.game_state_kwargs = game_state_kwargs
@@ -88,7 +99,19 @@ class Arena():
         self.test_winner = []
     
     def multi_game_test(self, num_game, clear_result=True): 
+        """
+        ゲームの勝率を計算するメソッド
+        
+        """
         def n_count(l,x):
+            """
+            入力 : 
+                 l : list 
+                 x : int 
+            出力  :
+                 float
+            """
+            
             return np.sum(np.array(l)==x)
         if clear_result:
             self.clear_test_result()
@@ -99,6 +122,12 @@ class Arena():
         return
         
     def __duel(self):
+        """
+        ai vs ai
+        
+        
+        """
+        
         self.game_state = koikoigame.KoiKoiGameState(**self.game_state_kwargs)
         while True:
             if self.game_state.game_over == True:
@@ -118,6 +147,9 @@ class Arena():
         return
     
     def test_result_str(self):
+        """
+        対戦のテスト結果を出力するためのメソッド
+        """
         assert len(self.test_winner) > 0
         win_num = self.test_win_num
         win_rate = self.test_win_rate

@@ -86,8 +86,8 @@ class KoiKoiRoundStateBase():
         
         # ログ
         self.log = {}
-        # logを表示する Ture->ログの非表示 False->ログの表示
-        self.silence =False
+        # logを表示する True->ログの非表示 False->ログの表示
+        self.silence = True
         # ターンでのポイント
         self.turn_point = 0
         
