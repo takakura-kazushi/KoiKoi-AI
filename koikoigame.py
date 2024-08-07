@@ -1004,7 +1004,7 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         f['turn'] = self.turn_16
         f['round'] = self.round
         f['']
-        
+        return f
         
         
     
