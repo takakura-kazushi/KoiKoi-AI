@@ -1,16 +1,21 @@
 import koikoigame
 import numpy as np
 import random
+import pprint
+import tqdm 
 
 
 class Agent():
     def __init__(self):
+        
         pass 
     
 
     
-    def auto_action(self,legal_action):
+    def auto_action(self,observation):
+        legal_action = observation['legal_action']
         
+        # legal_actionの余地がない場合にはNoneを返す
         return random.choice(legal_action)
     
 
@@ -54,7 +59,7 @@ class Arena():
             return np.sum(np.array(l)==x)
         if clear_result:
             self.clear_test_result()
-        for ii in range(num_game):
+        for ii in  tqdm.tqdm(range(num_game)):
             self.__duel()
         self.test_win_num = [n_count(self.test_winner,ii) for ii in [0,1,2]]
         self.test_win_rate = [n/sum(self.test_win_num) for n in self.test_win_num]
@@ -73,10 +78,10 @@ class Arena():
                 self.game_state.new_round()
             else:
                 if self.game_state.round_state.turn_player == 1:
-                    action = self.agent_1.auto_action(self.game_state)
+                    action = self.agent_1.auto_action(self.game_state.observation)
                     self.game_state.round_state.step(action)
                 else:
-                    action = self.agent_2.auto_action(self.game_state)
+                    action = self.agent_2.auto_action(self.game_state.observation)
                     self.game_state.round_state.step(action)
         self.test_point[1].append(self.game_state.point[1])
         self.test_point[2].append(self.game_state.point[2])
@@ -101,12 +106,14 @@ class Arena():
         self.test_winner = []
         return 
 
+
     
 if __name__ == '__main__':
+    from koikoilearn import BaseAgent
     agent1 = Agent()
     agent2 = Agent()
     
     arena = Arena(agent1,agent2)
-    arena.multi_game_test(10)
+    arena.multi_game_test(2000)
     print(arena.test_result_str())
     
