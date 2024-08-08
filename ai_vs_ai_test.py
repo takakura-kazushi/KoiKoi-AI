@@ -14,7 +14,7 @@ ai_name_pair = ['RL-WP', 'RL-WP'] # 'RL-Point','RL-WP','SL'
 record_path = 'gamerecords_agents/'
 game_state_kwargs={'player_name':ai_name_pair,
                    'record_path':record_path,
-                   'save_record':True}
+                   'save_record':False}
 
 if not os.path.isdir(record_path):
     os.mkdir(record_path)
@@ -39,9 +39,10 @@ for ii, ai_name in enumerate(ai_name_pair):
     pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'))
     koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'))
     
-    ai_agent[ii+1] = koikoilearn.Agent(discard_model, pick_model, koikoi_model)
+    ai_agent[ii+1] = koikoilearn.BaseAgent(discard_model, pick_model, koikoi_model)
 
 arena = koikoilearn.Arena(ai_agent[1], ai_agent[2], game_state_kwargs=game_state_kwargs)
-arena.multi_game_test(1)
+arena.multi_game_test(10)
+print(arena.test_result_str())
 print('Over')
 

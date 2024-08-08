@@ -10,9 +10,10 @@ import random
 import numpy as np
 
 import koikoigame
+import tqdm
 
 
-class Agent():
+class BaseAgent():
     def __init__(self, discard_model, pick_model, koikoi_model, random_action_prob=[0.,0.,0.,0.]):
         
         self.model = {'discard':discard_model, 'discard-pick':pick_model, 
@@ -80,6 +81,17 @@ class Agent():
         
 class Arena():
     def __init__(self, agent_1, agent_2, game_state_kwargs={}):
+        """
+        agentを戦わせる
+        -----------------------------
+        入力 : 
+            agent_1 : エージェント1
+            agent_2 : エージェント2
+            game_state_kwaegs : dict
+        出力 :
+            無し
+        """
+        
         self.agent_1 = agent_1
         self.agent_2 = agent_2
         self.game_state_kwargs = game_state_kwargs
@@ -88,17 +100,35 @@ class Arena():
         self.test_winner = []
     
     def multi_game_test(self, num_game, clear_result=True): 
+        """
+        ゲームの勝率を計算するメソッド
+        
+        """
         def n_count(l,x):
+            """
+            入力 : 
+                 l : list 
+                 x : int 
+            出力  :
+                 float
+            """
+            
             return np.sum(np.array(l)==x)
         if clear_result:
             self.clear_test_result()
-        for ii in range(num_game):
+        for ii in tqdm.tqdm(range(num_game)):
             self.__duel()
         self.test_win_num = [n_count(self.test_winner,ii) for ii in [0,1,2]]
         self.test_win_rate = [n/sum(self.test_win_num) for n in self.test_win_num]
         return
         
     def __duel(self):
+        """
+        ai vs ai
+        
+        
+        """
+        
         self.game_state = koikoigame.KoiKoiGameState(**self.game_state_kwargs)
         while True:
             if self.game_state.game_over == True:
@@ -118,6 +148,9 @@ class Arena():
         return
     
     def test_result_str(self):
+        """
+        対戦のテスト結果を出力するためのメソッド
+        """
         assert len(self.test_winner) > 0
         win_num = self.test_win_num
         win_rate = self.test_win_rate
@@ -196,3 +229,46 @@ class AgentForTest():
             elif state == 'koikoi':
                 action_output = random.choice([True, False])
         return action_output      
+    
+    
+if __name__ == '__main__' :
+    import os
+    import torch
+    import koikoilearn
+
+    ai_name_pair = ['RL-WP','SL'] # 'RL-Point','RL-WP','SL'
+    record_path = 'gamerecords_agents/'
+    game_state_kwargs={'player_name':ai_name_pair,
+                    'record_path':record_path,
+                    'save_record':False}
+
+    if not os.path.isdir(record_path):
+        os.mkdir(record_path)
+
+    ai_agent = {}
+    for ii, ai_name in enumerate(ai_name_pair):
+        assert ai_name in ['RL-Point','RL-WP','SL']
+        if ai_name == 'SL':
+            discard_model_path = 'model_agent/discard_sl.pt'
+            pick_model_path = 'model_agent/pick_sl.pt'
+            koikoi_model_path = 'model_agent/koikoi_sl.pt'
+        elif ai_name == 'RL-Point':
+            discard_model_path = 'model_agent/discard_rl_point.pt'
+            pick_model_path = 'model_agent/pick_rl_point.pt'
+            koikoi_model_path = 'model_agent/koikoi_rl_point.pt'
+        elif ai_name == 'RL-WP':
+            discard_model_path = 'model_agent/discard_rl_wp.pt'
+            pick_model_path = 'model_agent/pick_rl_wp.pt'
+            koikoi_model_path = 'model_agent/koikoi_rl_wp.pt'
+        
+        discard_model = torch.load(discard_model_path, map_location=torch.device('cpu'))
+        pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'))
+        koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'))
+        
+        ai_agent[ii+1] = koikoilearn.BaseAgent(discard_model, pick_model, koikoi_model)
+
+    arena = koikoilearn.Arena(ai_agent[1], ai_agent[2], game_state_kwargs=game_state_kwargs)
+    arena.multi_game_test(1000)
+    print(arena.test_result_str())
+    print('Over')
+

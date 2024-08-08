@@ -86,8 +86,8 @@ class KoiKoiRoundStateBase():
         
         # ログ
         self.log = {}
-        # logを表示する Ture->ログの非表示 False->ログの表示
-        self.silence =False
+        # logを表示する True->ログの非表示 False->ログの表示
+        self.silence = True
         # ターンでのポイント
         self.turn_point = 0
         
@@ -135,7 +135,7 @@ class KoiKoiRoundStateBase():
     @property
     def pairing_card(self):
         """
-        見せたカードとペアにすることができるカードのリストを返すプロパティ
+        見せたカードとペアにすることができるカードのリストを返すプロパティ]
         """
         return [card for card in self.field if card[0]==self.show[0][0]]
     
@@ -995,19 +995,52 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         return f
     
     @property
-    def observation(self):
+    def legal_action(self):
         """
         一回毎にobesevation可能な量とAction可能なカードのリストを返す変数を与えるプロパティ
         """
-        f = {}
-        f['hand'] = self.hand
-        f['turn'] = self.turn_16
-        f['round'] = self.round
-        f['']
+        legal_action = [None]
+        if self.round_state.wait_action == True:
+            state = self.round_state.state
+            if state == 'discard':
+                turn_player = self.round_state.turn_player
+                legal_action = self.round_state.hand[turn_player]
+            elif state in ['discard-pick', 'draw-pick']:
+                legal_action = self.round_state.pairing_card
+            elif state == 'koikoi':
+                legal_action =[True, False]
+        return legal_action
         
+    @property
+    def observation(self,view=None):
+        view = self.round_state.turn_player if view == None else view
+        op_view = 3-view
         
+        pile = set([tuple(card) for card in self.round_state.pile[view]])
+        op_pile = set([tuple(card) for card in self.round_state.pile[op_view]])
         
-    
-
-
-    
+        observation = {}
+        observation['turn'] = self.round_state.turn_8
+        observation['state'] = self.round_state.state 
+        observation['op_total_point'] = self.round_state.yaku_point(op_view)
+        observation['op_yaku'] = [[yaku[1],yaku[2]] for yaku in self.round_state.yaku(op_view)]
+        observation['op_Light'] = list(op_pile & KoiKoiCard.light)
+        observation['op_Seed'] = list(op_pile & KoiKoiCard.seed)
+        observation['op_Ribbon'] = list(op_pile & KoiKoiCard.ribbon)
+        observation['op_Dross'] = list(op_pile & KoiKoiCard.dross)
+        observation['op_pile'] = self.round_state.pile[op_view]
+        observation['field'] = self.round_state.field 
+        observation['your_hand'] = self.round_state.hand[view]
+        observation['your_yaku'] = [[yaku[1],yaku[2]] for yaku in self.round_state.yaku(view)]
+        observation['your_Light'] = list(pile & KoiKoiCard.light)
+        observation['your_Seed'] = list(pile & KoiKoiCard.seed)
+        observation['your_Ribbon'] = list(pile & KoiKoiCard.ribbon)
+        observation['your_Dross'] = list(pile & KoiKoiCard.dross)
+        observation['your_total_point'] = self.round_state.yaku_point(view)
+        observation['koikoi'] = self.round_state.koikoi
+        observation['legal_action'] = self.legal_action
+        
+        return observation
+            
+            
+            
