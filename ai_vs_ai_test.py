@@ -42,6 +42,7 @@ for ii, ai_name in enumerate(ai_name_pair):
     ai_agent[ii+1] = koikoilearn.Agent(discard_model, pick_model, koikoi_model)
 
 arena = koikoilearn.Arena(ai_agent[1], ai_agent[2], game_state_kwargs=game_state_kwargs)
-arena.multi_game_test(1)
+arena.multi_game_test(10)
+print(arena.test_result_str())
 print('Over')
 

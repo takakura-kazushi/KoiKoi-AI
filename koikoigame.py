@@ -12,7 +12,8 @@ import time
 
 import numpy as np
 import torch
-
+from enum import Enum
+from typing import List, Tuple, Dict
 
 class DefaultVar():
     DEFAULT_ROUND_TOTAL = 8
@@ -86,8 +87,8 @@ class KoiKoiRoundStateBase():
         
         # ログ
         self.log = {}
-        # logを表示する Ture->ログの非表示 False->ログの表示
-        self.silence =False
+        # logを表示する True->ログの非表示 False->ログの表示
+        self.silence = True
         # ターンでのポイント
         self.turn_point = 0
         
@@ -1007,7 +1008,59 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         return f
         
         
-    
+class Phase(Enum):
+    DISCARD = 1
+    DISCARD_PICK = 2
+    DRAW = 3
+    DRAW_PICK = 4
+    KOIKOI = 5
+    ROUND_OVER = 6
 
+class Observation:
+    def __init__(self, round_state: KoiKoiRoundState):
+        self.now_player = round_state.turn_player
+        self.round = round_state.round
+        self.phase = self.__get_phase(round_state.state)
+        self.hand = {
+            1: round_state.hand[1],
+            2: round_state.hand[2]
+        }
+        self.your_point = round_state.point[self.now_player]
+        self.opponent_point = round_state.point[3 - self.now_player]
+        self.filed_card = round_state.field
+        self.card_to_filed = round_state.field_collect
+        self.pile = {
+            1: round_state.pile[1],
+            2: round_state.pile[2]
+        }
+        self.yaku = round_state.yaku(self.now_player)
+        self.last_winner = round_state.winner == self.now_player
+        self.stock = round_state.stock
 
+    def to_json(self) -> Dict:
+        return {
+            "now_player": self.now_player,
+            "round": self.round,
+            "phase": self.phase.name,
+            "hand": self.hand,
+            "your_point": self.your_point,
+            "opponent_point": self.opponent_point,
+            "filed_card": self.filed_card,
+            "card_to_filed": self.card_to_filed,
+            "pile": self.pile,
+            "yaku": [(yaku[1], yaku[2]) for yaku in self.yaku],
+            "last_winner": self.last_winner,
+            "stock": self.stock
+        }
+
+    def __get_phase(self, state: str) -> Phase:
+        phase_map = {
+            "discard": Phase.DISCARD,
+            "discard-pick": Phase.DISCARD_PICK,
+            "draw": Phase.DRAW,
+            "draw-pick": Phase.DRAW_PICK,
+            "koikoi": Phase.KOIKOI,
+            "round-over": Phase.ROUND_OVER
+        }
+        return phase_map[state]
     
