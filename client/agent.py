@@ -1,35 +1,22 @@
-# from abc import abstractmethod
-# import KoiKoiGameState 
-import koikoigame
-# class Agent():
-#     def __init__(self):
-#         pass 
-#     def auto_action(self,observation):
-# 	    legalaction = koikoigame.KoiKoiGameState.obeservation.legal_action
-#         return random.choice(legal_action)
+from abc import ABC, abstractmethod
 
-from abc import abstractmethod
-
-class CustomAgentBase:
+class CustomAgentBase(ABC):
     def __init__(self):
-        pass
+        super().__init__()
 
     @abstractmethod
-    def custom_act(self, obs):
+    def custom_act(self, observation):
+        """参加者はこの関数をオーバーライドして行動を実装する"""
         pass
 
     def act(self, observation):
         try:
             return self.custom_act(observation)
         except:
-            legal_actions = koikoigame.KoiKoiGameState.obeservation.legal_actions()
+            legal_actions = observation['legal_action']
             if len(legal_actions) == 1:
                 return legal_actions[0]
             for action in legal_actions:
-                if action in ['discard', 'pass']:
+                if action is None or action is False:
                     return action
-
-class RandomAgent(CustomAgentBase):
-    def custom_act(self, obs):
-        import random
-        return random.choice(obs.legal_actions())
+            return legal_actions[0]  # デフォルトアクション

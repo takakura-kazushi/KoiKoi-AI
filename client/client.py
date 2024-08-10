@@ -1,127 +1,125 @@
-# import time
-# import eventlet
-# import socketio
-# import json
-# import random
-
-# from datetime import datetime
-
-# from __future__ import annotations
-
-# # SocketIOのテンプレート
-# class SocketIOClient:
-#     # 初期化
-#     def __init__(self,ip,port,namespace,query,agent,room_id,player_name):
-#         # self.ip_         = ip
-#         # self.port_       = port
-#         # self.namespace_  = namespace
-#         # self.query_      = query
-#         # self.is_connect_ = False
-#         self.sio_        = socketio.Client()
-#         # self.Namespace   = self.NamespaceClass(self.namespace_)
-#         # self.overload_event()
-#         # self.sio_.register_namespace(self.Namespace)
-#         # self.agent = agent
-#         # self.room_id = room_id
-#         # self.player_name = player_name
-#     # サーバーから切断された場合の処理
-#         @sio.event
-#         def disconnect():
-#             print('サーバーから切断されました')
-        
-#         # サーバーからメッセージを受信した場合の処理
-#         @sio.event
-#         def message(data):
-#             print(f'サーバーからのメッセージ: {data}')
-            
-#         def on_message(self, data):
-#             print('Received message %s', str(data))
-#     # サーバーからイベント名「server_to_client」でデータがemitされた時に呼ばれる
-#         def on_server_to_client(self, data):
-#             print('Received message %s', str(data))
-# if __name__ == '__main__':
-#     # Ctrl + C (SIGINT) で終了
-#     # signal.signal(signal.SIGINT, signal.SIG_DFL)
-#     # SocketIO Client インスタンスを生成
-#     agent = agents.ShantenAgent()
-#     room_id = 123  # NOTE: DEBUG
-#     sio_client = SocketIOClient('localhost', 5000, '/test', 'secret', agent, room_id)
-#     # SocketIO Client インスタンスを実行
-#     sio_client.run()
-#     sio_client.enter_room()
-
 import socketio
-import json
-import torch
-from koikoigame import KoiKoiGameState
-from koikoilearn import AgentForTest
+import sys
+import os
+import random
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),)))
+from agent import CustomAgentBase
+from abc import ABC, abstractmethod
+# SocketIOのテンプレート
+# class SocketIOClient:
+#     def __init__(self, ip, port, namespace, agent: CustomAgentBase, room_id, player_name):
+#         self.sio = socketio.Client()
+#         self.ip = ip
+#         self.port = port
+#         self.namespace = namespace
+#         self.agent = agent
+#         self.room_id = room_id
+#         self.player_name = player_name
+        
+#         # 接続時に呼ばれるイベント
+#         @self.sio.event(namespace=self.namespace)
+#         def connect():
+#             print('Connected to server')
+#             self.enter_room()
 
-class KoiKoiClient(socketio.ClientNamespace):
-    def __init__(self, namespace, agent, your_name='Player', ai_name='RL-Point', record_path='gamerecords_player/'):
-        super().__init__(namespace)
+#         # 切断時に呼ばれるイベント
+#         @self.sio.event(namespace=self.namespace)
+#         def disconnect():
+#             print('Disconnected from server')
+
+#         # 行動時に呼ばれるイベント
+#         @self.sio.on('ask_act', namespace=self.namespace)
+#         def on_ask_act(observation):
+#             action = self.agent.act(observation)
+#             return action
+
+#     def connect(self):
+#         url = f'http://{self.ip}:{self.port}'
+#         self.sio.connect(url, namespaces=[self.namespace])
+
+#     def enter_room(self):
+#         data = {
+#             'room_id': self.room_id,
+#             'player_name': self.player_name,
+#         }
+#         self.sio.emit('enter_room', data=data, namespace=self.namespace)
+
+#     def run(self):
+#         self.connect()
+#         self.sio.wait()
+class CustomAgentBase(ABC):
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def custom_act(self, observation):
+        pass
+
+    def act(self, observation):
+        try:
+            return self.custom_act(observation)
+        except:
+            legal_actions = observation['legal_action']
+            if len(legal_actions) == 1:
+                return legal_actions[0]
+            for action in legal_actions:
+                if action is None or action is False:
+                    return action
+            return legal_actions[0]
+class SocketIOClient:
+    def __init__(self, ip, port, namespace, agent: CustomAgentBase, room_id, player_name, mode, num_games=1):
+        self.sio = socketio.Client()
+        self.ip = ip
+        self.port = port
+        self.namespace = namespace
         self.agent = agent
-        self.your_name = your_name
-        self.ai_name = ai_name
-        self.record_path = record_path
-        self.setup_game()
+        self.room_id = room_id
+        self.player_name = player_name
+        self.mode = mode
+        self.num_games = num_games
 
-    def setup_game(self):
-        record_fold = self.record_path + self.ai_name + '/'
-        for path in [self.record_path, record_fold]:
-            if not os.path.isdir(path):
-                os.mkdir(path)
+        @self.sio.event(namespace=self.namespace)
+        def connect():
+            print('Connected to server')
+            self.enter_room()
 
-        if self.ai_name == 'SL':
-            discard_model_path = 'model_agent/discard_sl.pt'
-            pick_model_path = 'model_agent/pick_sl.pt'
-            koikoi_model_path = 'model_agent/koikoi_sl.pt'
-        elif self.ai_name == 'RL-Point':
-            discard_model_path = 'model_agent/discard_rl_point.pt'
-            pick_model_path = 'model_agent/pick_rl_point.pt'
-            koikoi_model_path = 'model_agent/koikoi_rl_point.pt'
-        elif self.ai_name == 'RL-WP':
-            discard_model_path = 'model_agent/discard_rl_wp.pt'
-            pick_model_path = 'model_agent/pick_rl_wp.pt'
-            koikoi_model_path = 'model_agent/koikoi_rl_wp.pt'
+        @self.sio.event(namespace=self.namespace)
+        def disconnect():
+            print('Disconnected from server')
 
-        self.game_state = KoiKoiGameState(player_name=[self.your_name, self.ai_name], record_path=record_fold, save_record=True)
-        self.discard_model = torch.load(discard_model_path, map_location=torch.device('cpu'))
-        self.pick_model = torch.load(pick_model_path, map_location=torch.device('cpu'))
-        self.koikoi_model = torch.load(koikoi_model_path, map_location=torch.device('cpu'))
-        self.ai_agent = AgentForTest(self.discard_model, self.pick_model, self.koikoi_model)
+        @self.sio.on('ask_act', namespace=self.namespace)
+        def on_ask_act(observation):
+            action = self.agent.act(observation)
+            self.sio.emit('action', {'room_id': self.room_id, 'action': action}, namespace=self.namespace)
 
-    def on_connect(self):
-        print('Connected to server')
-        self.emit('join', {'player_name': self.your_name})
+        @self.sio.on('game_over', namespace=self.namespace)
+        def on_game_over(data):
+            if 'result' in data:
+                print(f"Game over. Final results: {data['result']}")
+            if 'winner' in data:
+                print(f"Winner of this game: Player {data['winner']}")
+        self.sio.disconnect()
 
-    def on_disconnect(self):
-        print('Disconnected from server')
+    def connect(self):
+        url = f'http://{self.ip}:{self.port}'
+        self.sio.connect(url, namespaces=[self.namespace])
 
-    def on_message(self, data):
-        print(f'Received message: {data}')
+    def enter_room(self):
+        data = {
+            'room_id': self.room_id,
+            'player_name': self.player_name,
+            'mode': self.mode,
+            'num_games': self.num_games
+        }
+        print(f"Sending enter_room event with data: {data}")  # デバッグ出力
+        self.sio.emit('enter_room', data=data, namespace=self.namespace)
 
-    def on_game_state(self, data):
-        self.game_state.load(data)
-        action = self.get_player_action()
-        self.emit('action', {'player': self.your_name, 'action': action})
-
-    def get_player_action(self):
-        state = self.game_state.round_state.state
-        turn_player = self.game_state.round_state.turn_player
-
-        if turn_player == 1:
-            action = get_player_action(self.game_state)
-        else:
-            action = self.ai_agent.auto_action(self.game_state)
-        return action
-
-def main():
-    sio = socketio.Client()
-    agent = None  # Your agent instance if needed
-    client = KoiKoiClient(namespace='/koikoi', agent=agent)
-    sio.register_namespace(client)
-    sio.connect('http://localhost:5000')
-    sio.wait()
-
+    def run(self):
+        self.connect()
+        self.sio.wait()
+        
 if __name__ == '__main__':
-    main()
+    # SocketIO Client インスタンスを生成
+    room_id = 123  # NOTE: DEBUG
+    sio_client = SocketIOClient('localhost', 5000, '/test', 'secret', agent, room_id)
+    
