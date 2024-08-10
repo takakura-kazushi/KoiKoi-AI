@@ -143,6 +143,11 @@ def end_game(room_id):
         rooms[room_id]['results']['losses'] += 1
     else:
         rooms[room_id]['results']['draws'] += 1
+    
+    # progress bar 用
+    for player_sid, _ in rooms[room_id]['players']:
+        if player_sid:
+            sio.emit('game_over', {'winner': winner}, room=player_sid, namespace='/koi-koi')
 
     if rooms[room_id]['games_played'] < rooms[room_id]['num_games']:
         print(f"Starting new game. Games played: {rooms[room_id]['games_played']}")
@@ -157,26 +162,6 @@ def end_game(room_id):
         
         print(f"All games completed. Final results: {result_str}")
         # ルームをクリーンアップ
-        del rooms[room_id]
-        
-    # for player_sid, _ in rooms[room_id]['players']:
-    #     sio.emit('game_over', {'winner': winner}, room=player_sid, namespace='/koi-koi')
-
-    #     rooms[room_id]['games_played'] += 1
-    #     if winner == 1:
-    #         rooms[room_id]['results']['wins'] += 1
-    #     elif winner == 2:
-    #         rooms[room_id]['results']['losses'] += 1
-    #     else:
-    #         rooms[room_id]['results']['draws'] += 1
-    
-    #     if rooms[room_id]['games_played'] < rooms[room_id]['num_games']:
-    #         start_game(room_id)
-    #     else:
-    #         results = rooms[room_id]['results']
-    #         result_str = f"Games played: {rooms[room_id]['num_games']}, Wins: {results['wins']}, Losses: {results['losses']}, Draws: {results['draws']}"
-    #         for player_sid, _ in rooms[room_id]['players']:
-    #             sio.emit('game_over', {'result': result_str}, room=player_sid, namespace='/koi-koi')
-    
+        del rooms[room_id]    
 if __name__ == '__main__':
     eventlet.wsgi.server(eventlet.listen(('', 5000)), app)

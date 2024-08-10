@@ -5,48 +5,7 @@ import random
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),)))
 from agent import CustomAgentBase
 from abc import ABC, abstractmethod
-# SocketIOのテンプレート
-# class SocketIOClient:
-#     def __init__(self, ip, port, namespace, agent: CustomAgentBase, room_id, player_name):
-#         self.sio = socketio.Client()
-#         self.ip = ip
-#         self.port = port
-#         self.namespace = namespace
-#         self.agent = agent
-#         self.room_id = room_id
-#         self.player_name = player_name
-        
-#         # 接続時に呼ばれるイベント
-#         @self.sio.event(namespace=self.namespace)
-#         def connect():
-#             print('Connected to server')
-#             self.enter_room()
-
-#         # 切断時に呼ばれるイベント
-#         @self.sio.event(namespace=self.namespace)
-#         def disconnect():
-#             print('Disconnected from server')
-
-#         # 行動時に呼ばれるイベント
-#         @self.sio.on('ask_act', namespace=self.namespace)
-#         def on_ask_act(observation):
-#             action = self.agent.act(observation)
-#             return action
-
-#     def connect(self):
-#         url = f'http://{self.ip}:{self.port}'
-#         self.sio.connect(url, namespaces=[self.namespace])
-
-#     def enter_room(self):
-#         data = {
-#             'room_id': self.room_id,
-#             'player_name': self.player_name,
-#         }
-#         self.sio.emit('enter_room', data=data, namespace=self.namespace)
-
-#     def run(self):
-#         self.connect()
-#         self.sio.wait()
+from tqdm import tqdm
 class CustomAgentBase(ABC):
     def __init__(self):
         super().__init__()
@@ -77,6 +36,9 @@ class SocketIOClient:
         self.player_name = player_name
         self.mode = mode
         self.num_games = num_games
+        self.games_played = 0
+        self.progress_bar = tqdm(total=num_games, desc="Games Progress", unit="game")
+
 
         @self.sio.event(namespace=self.namespace)
         def connect():
@@ -95,10 +57,13 @@ class SocketIOClient:
         @self.sio.on('game_over', namespace=self.namespace)
         def on_game_over(data):
             if 'result' in data:
+                self.progress_bar.close()
                 print(f"Game over. Final results: {data['result']}")
+                self.sio.disconnect()
             if 'winner' in data:
+                self.games_played += 1
+                self.progress_bar.update(1)
                 print(f"Winner of this game: Player {data['winner']}")
-        self.sio.disconnect()
 
     def connect(self):
         url = f'http://{self.ip}:{self.port}'
