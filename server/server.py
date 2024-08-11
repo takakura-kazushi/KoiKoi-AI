@@ -15,7 +15,7 @@ rooms = {}
 @sio.event(namespace='/koi-koi')
 def connect(sid, environ):
     print('Client connected:', sid)
-    # sio.emit('connection_established', room=sid, namespace='/koi-koi')
+    sio.emit('connection_established', room=sid, namespace='/koi-koi')
 
 # 切断時
 @sio.event(namespace='/koi-koi')
@@ -30,25 +30,20 @@ def enter_room(sid, data):
     player_name = data['player_name']
     mode = data['mode']
     num_games = data.get('num_games', 1)
-
-    # if room_id not in rooms:
-    #     rooms[room_id] = {'players': [], 'game': None, 'mode': mode, 'num_games': num_games}
-        
-    # if len(rooms[room_id]['players']) < 2:
-    #     rooms[room_id]['players'].append((sid, player_name))
-    #     print(f'{player_name} entered room {room_id}')
-
-    #     if (mode == 1 and len(rooms[room_id]['players']) == 1) or (mode == 2 and len(rooms[room_id]['players']) == 2):
-    #         start_game(room_id)
+    
     if room_id not in rooms:
         rooms[room_id] = {'players': [], 'game': None, 'mode': mode, 'num_games': num_games}
+    
+    if len(rooms[room_id]['players']) < 2:
         rooms[room_id]['players'].append((sid, player_name))
         print(f'{player_name} entered room {room_id}')
+        sio.enter_room(sid, room_id, namespace='/koi-koi')
 
         if (mode == 1 and len(rooms[room_id]['players']) == 1) or (mode == 2 and len(rooms[room_id]['players']) == 2):
             start_game(room_id)
     else:
         print(f"Room {room_id} is full. Cannot add more players.")
+        sio.emit('room_full', room=sid, namespace='/koi-koi')
         
 @sio.on('action', namespace='/koi-koi')
 def on_action(sid, data):
@@ -76,7 +71,7 @@ def start_game(room_id):
     rooms[room_id]['game'] = game
     if 'games_played' not in rooms[room_id]:
         rooms[room_id]['games_played'] = 0
-        rooms[room_id]['results'] = {'wins': 0, 'losses': 0, 'draws': 0}
+        rooms[room_id]['results'] = {'player 1 wins': 0, 'player 2 wins': 0, 'draws': 0}
 
 
     if rooms[room_id]['mode'] == 2:
@@ -138,9 +133,9 @@ def end_game(room_id):
     rooms[room_id]['games_played'] += 1
 
     if winner == 1:
-        rooms[room_id]['results']['wins'] += 1
+        rooms[room_id]['results']['player 1 wins'] += 1
     elif winner == 2:
-        rooms[room_id]['results']['losses'] += 1
+        rooms[room_id]['results']['player 2 wins'] += 1
     else:
         rooms[room_id]['results']['draws'] += 1
     
@@ -154,7 +149,7 @@ def end_game(room_id):
         start_game(room_id)
     else:
         results = rooms[room_id]['results']
-        result_str = f"Games played: {rooms[room_id]['num_games']}, Wins: {results['wins']}, Losses: {results['losses']}, Draws: {results['draws']}"
+        result_str = f"Games played: {rooms[room_id]['num_games']}, {rooms[room_id]['players'][0][1]}Wins: {results['player 1 wins']}, {rooms[room_id]['players'][1][1]}Wins: {results['player 2 wins']}, Draws: {results['draws']}"
         
         for player_sid, _ in rooms[room_id]['players']:
             if player_sid:  # AIプレイヤーの場合、sidがNoneなので除外

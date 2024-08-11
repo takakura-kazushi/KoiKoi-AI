@@ -24,6 +24,7 @@ if __name__ == "__main__":
   
     mode = int(input("Enter mode (1 for playing against AI, 2 for playing against another client): "))
     num_games = int(input("Enter number of games to play: "))
+    player_name = input("Enter your player name: ")
 
     sio_client = SocketIOClient(
         ip='localhost',
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         namespace='/koi-koi',
         agent=my_agent,
         room_id=123,
-        player_name='Player1',
+        player_name=player_name,
         mode=mode,
         num_games=num_games
     )

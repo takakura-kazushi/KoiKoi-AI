@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),)))
 from agent import CustomAgentBase
 from abc import ABC, abstractmethod
 from tqdm import tqdm
+import time
 class CustomAgentBase(ABC):
     def __init__(self):
         super().__init__()
@@ -38,17 +39,26 @@ class SocketIOClient:
         self.num_games = num_games
         self.games_played = 0
         self.progress_bar = tqdm(total=num_games, desc="Games Progress", unit="game")
-
+        self.connected = False
+        self.connection_established = False
+        
 
         @self.sio.event(namespace=self.namespace)
         def connect():
             print('Connected to server')
-            self.enter_room()
+            # self.enter_room()
+            self.connected = True
 
         @self.sio.event(namespace=self.namespace)
         def disconnect():
             print('Disconnected from server')
 
+        @self.sio.event(namespace=self.namespace)
+        def connection_established():
+            print('Connection established, entering room')
+            self.connection_established = True
+            # self.enter_room()
+            
         @self.sio.on('ask_act', namespace=self.namespace)
         def on_ask_act(observation):
             action = self.agent.act(observation)
@@ -70,6 +80,10 @@ class SocketIOClient:
         self.sio.connect(url, namespaces=[self.namespace])
 
     def enter_room(self):
+        if not self.connected:
+            print("Not connected to server yet. Waiting...")
+            return
+        
         data = {
             'room_id': self.room_id,
             'player_name': self.player_name,
@@ -81,6 +95,17 @@ class SocketIOClient:
 
     def run(self):
         self.connect()
+        # 接続が確立されるまで待つ
+        timeout = 10  # タイムアウト秒数
+        start_time = time.time()
+        while not (self.connected and self.connection_established):
+            time.sleep(0.1)
+            if time.time() - start_time > timeout:
+                print("Connection timeout")
+                return
+
+        print("Entering room...")
+        self.enter_room()
         self.sio.wait()
         
 if __name__ == '__main__':
