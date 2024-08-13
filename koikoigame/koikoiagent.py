@@ -1,8 +1,10 @@
-import koikoigame
+
 import numpy as np
 import random
 import pprint
-import tqdm 
+from .koikoigame import KoiKoiGameState
+import tqdm
+
 
 
 class Agent():
@@ -73,7 +75,7 @@ class Arena():
         ai vs ai
         """
         
-        self.game_state = koikoigame.KoiKoiGameState(**self.game_state_kwargs)
+        self.game_state = KoiKoiGameState(**self.game_state_kwargs)
         while True:
             if self.game_state.game_over == True:
                 break
@@ -81,10 +83,10 @@ class Arena():
                 self.game_state.new_round()
             else:
                 if self.game_state.round_state.turn_player == 1:
-                    action = self.agent_1.auto_action(self.game_state.observation)
+                    action = self.agent_1.custom_act(self.game_state.observation)
                     self.game_state.round_state.step(action)
                 else:
-                    action = self.agent_2.auto_action(self.game_state.observation)
+                    action = self.agent_2.custom_act(self.game_state.observation)
                     self.game_state.round_state.step(action)
         self.test_point[1].append(self.game_state.point[1])
         self.test_point[2].append(self.game_state.point[2])
