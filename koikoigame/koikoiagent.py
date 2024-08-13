@@ -9,9 +9,6 @@ class Agent():
     def __init__(self):
         
         pass 
-    
-
-    
     def auto_action(self,observation):
         legal_action = observation['legal_action']
         
@@ -115,7 +112,6 @@ class Arena():
 
     
 if __name__ == '__main__':
-    from koikoilearn import BaseAgent
     agent1 = Agent()
     agent2 = Agent()
     
