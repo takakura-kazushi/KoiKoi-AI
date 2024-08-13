@@ -101,7 +101,6 @@ def ask_for_action(room_id, player):
         print("Round is over. Starting a new round or ending the game.")
         start_new_round(room_id)
         return
-    # player_sid = next(sid for sid, _ in rooms[room_id]['players'] if sid == player)
 
     if rooms[room_id]['mode'] == 1 and player == 2:
         print("AI's turn")

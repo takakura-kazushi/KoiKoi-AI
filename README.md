@@ -24,3 +24,56 @@ Koi-Koi is consisted by multiple rounds and both players start with equal points
 
 ![Yaku List](/markdown/koikoi_yaku.png)
 
+# socket通信の回し方
+
+自作AIを用いてAgent側と対戦するとき、または自作AI同士で対戦するときのやりかた(singularity shellに入った後)
+
+1. serverの起動
+
+```
+$ cd server
+$ python3 server.py
+```
+
+2. sample_client.pyの起動(自作AIをsample_client.pyのところに実装してください！)自作AIを実装しなくてもランダムに返すもの同士で対戦はできます
+
+```
+$ cd samples
+$ python3 sample_client.py
+```
+
+その後、
+```
+Enter mode (1 for playing against AI, 2 for playing against another client): 
+```
+と聞かれるのでモードを半角数字で入力してください！
+
+```
+Enter number of games to play: 
+```
+で対戦数を決めます(ゲームを何回やるか)。半角数字で入力してください！
+
+```
+Enter your player name: 
+```
+で名前を入力
+
+ゲームの進捗バーが表示されます。以下は例
+```
+Singularity> python3 sample_client.py 
+Enter mode (1 for playing against AI, 2 for playing against another client): 1
+Enter number of games to play: 10
+Enter your player name: nunu
+Games Progress:   0%|                                                            | 0/10 [00:00<?, ?game/s]Connection established, entering room
+Connected to server
+Entering room...
+Sending enter_room event with data: {'room_id': 123, 'player_name': 'nunu', 'mode': 1, 'num_games': 10}
+Games Progress:  10%|█████▏                                              | 1/10 [00:00<00:03,  2.48game/s]Winner of this game: Player 2
+```
+
+対戦が終わったら結果が表示されます。以下は例です。
+```
+Game over. Final results: Games played: 10, nunuWins: 7, AIWins: 3, Draws: 0
+Disconnected from server
+Winner of this game: Player 1
+```
