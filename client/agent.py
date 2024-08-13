@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class CustomAgentBase(ABC):
     def __init__(self):
         super().__init__()
@@ -13,7 +14,7 @@ class CustomAgentBase(ABC):
         try:
             return self.custom_act(observation)
         except:
-            legal_actions = observation['legal_action']
+            legal_actions = observation["legal_action"]
             if len(legal_actions) == 1:
                 return legal_actions[0]
             for action in legal_actions:
