@@ -234,7 +234,7 @@ class AgentForTest():
 if __name__ == '__main__' :
     import os
     import torch
-    import base_models.koikoilearn as koikoilearn
+    import models_agent.koikoilearn as koikoilearn
 
     ai_name_pair = ['RL-WP','SL'] # 'RL-Point','RL-WP','SL'
     record_path = 'gamerecords_agents/'
