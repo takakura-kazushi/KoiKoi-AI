@@ -578,7 +578,7 @@ class KoiKoiGameStateBase():
     def __init__(self, round_num=1, round_total=DefaultVar.DEFAULT_ROUND_TOTAL,
                  init_point=[DefaultVar.DEFAULT_INIT_POINT,DefaultVar.DEFAULT_INIT_POINT],
                  init_dealer=None, player_name=['Player1','Player2'], 
-                 record_path='', save_record=False):
+                 record_path='', save_record=True):
         """
         入力変数 : 
                 round_num   : int  ラウンドの回数
