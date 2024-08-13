@@ -12,7 +12,8 @@ import time
 
 import numpy as np
 import torch
-
+from enum import Enum
+from typing import List, Tuple, Dict
 
 class DefaultVar():
     DEFAULT_ROUND_TOTAL = 8

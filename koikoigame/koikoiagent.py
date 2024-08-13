@@ -16,7 +16,13 @@ class Agent():
         legal_action = observation['legal_action']
         
         # legal_actionの余地がない場合にはNoneを返す
-        return random.choice(legal_action)
+        if not legal_action:
+            print("No legal actions available")
+            return None
+        
+        chosen_action = random.choice(legal_action)
+        print(f"AI chose action: {chosen_action} from legal actions: {legal_action}")
+        return chosen_action
     
 
         
