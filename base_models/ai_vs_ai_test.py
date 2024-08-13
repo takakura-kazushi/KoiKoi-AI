@@ -8,7 +8,7 @@ Created on Wed Nov 17 10:42:30 2021
 
 import os
 import torch
-import models_agent.koikoilearn as koikoilearn
+import base_models.koikoilearn as koikoilearn
 
 ai_name_pair = ['RL-WP', 'RL-WP'] # 'RL-Point','RL-WP','SL'
 record_path = 'gamerecords_agents/'
