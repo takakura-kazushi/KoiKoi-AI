@@ -6,8 +6,10 @@ from typing import Tuple, Optional
 
 
 class MultiheadAttentionContainer(torch.nn.Module):
-    def __init__(self, nhead, in_proj_container, attention_layer, out_proj, batch_first=False):
-        r""" A multi-head attention container
+    def __init__(
+        self, nhead, in_proj_container, attention_layer, out_proj, batch_first=False
+    ):
+        r"""A multi-head attention container
         Args:
             nhead: the number of heads in the multiheadattention model
             in_proj_container: A container of multi-head in-projection linear layers (a.k.a nn.Linear).
@@ -43,10 +45,15 @@ class MultiheadAttentionContainer(torch.nn.Module):
         self.out_proj = out_proj
         self.batch_first = batch_first
 
-    def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor,
-                attn_mask: Optional[torch.Tensor] = None,
-                bias_k: Optional[torch.Tensor] = None,
-                bias_v: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self,
+        query: torch.Tensor,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        attn_mask: Optional[torch.Tensor] = None,
+        bias_k: Optional[torch.Tensor] = None,
+        bias_v: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Args:
             query (Tensor): The query of the attention function.
@@ -77,24 +84,40 @@ class MultiheadAttentionContainer(torch.nn.Module):
             N is the batch size, and E is the embedding dimension.
         """
         if self.batch_first:
-            query, key, value = query.transpose(-3, -2), key.transpose(-3, -2), value.transpose(-3, -2)
+            query, key, value = (
+                query.transpose(-3, -2),
+                key.transpose(-3, -2),
+                value.transpose(-3, -2),
+            )
 
-        tgt_len, src_len, bsz, embed_dim = query.size(-3), key.size(-3), query.size(-2), query.size(-1)
+        tgt_len, src_len, bsz, embed_dim = (
+            query.size(-3),
+            key.size(-3),
+            query.size(-2),
+            query.size(-1),
+        )
         q, k, v = self.in_proj_container(query, key, value)
-        assert q.size(-1) % self.nhead == 0, "query's embed_dim must be divisible by the number of heads"
+        assert (
+            q.size(-1) % self.nhead == 0
+        ), "query's embed_dim must be divisible by the number of heads"
         head_dim = q.size(-1) // self.nhead
         q = q.reshape(tgt_len, bsz * self.nhead, head_dim)
 
-        assert k.size(-1) % self.nhead == 0, "key's embed_dim must be divisible by the number of heads"
+        assert (
+            k.size(-1) % self.nhead == 0
+        ), "key's embed_dim must be divisible by the number of heads"
         head_dim = k.size(-1) // self.nhead
         k = k.reshape(src_len, bsz * self.nhead, head_dim)
 
-        assert v.size(-1) % self.nhead == 0, "value's embed_dim must be divisible by the number of heads"
+        assert (
+            v.size(-1) % self.nhead == 0
+        ), "value's embed_dim must be divisible by the number of heads"
         head_dim = v.size(-1) // self.nhead
         v = v.reshape(src_len, bsz * self.nhead, head_dim)
 
-        attn_output, attn_output_weights = self.attention_layer(q, k, v, attn_mask=attn_mask,
-                                                                bias_k=bias_k, bias_v=bias_v)
+        attn_output, attn_output_weights = self.attention_layer(
+            q, k, v, attn_mask=attn_mask, bias_k=bias_k, bias_v=bias_v
+        )
         attn_output = attn_output.reshape(tgt_len, bsz, embed_dim)
         attn_output = self.out_proj(attn_output)
 
@@ -126,10 +149,15 @@ class ScaledDotProduct(torch.nn.Module):
         self.dropout = dropout
         self.batch_first = batch_first
 
-    def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor,
-                attn_mask: Optional[torch.Tensor] = None,
-                bias_k: Optional[torch.Tensor] = None,
-                bias_v: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self,
+        query: torch.Tensor,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        attn_mask: Optional[torch.Tensor] = None,
+        bias_k: Optional[torch.Tensor] = None,
+        bias_v: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""Uses a scaled dot product with the projected key-value pair to update
         the projected query.
         Args:
@@ -158,42 +186,66 @@ class ScaledDotProduct(torch.nn.Module):
             of attention heads, N is the batch size, and E is the embedding dimension.
         """
         if self.batch_first:
-            query, key, value = query.transpose(-3, -2), key.transpose(-3, -2), value.transpose(-3, -2)
+            query, key, value = (
+                query.transpose(-3, -2),
+                key.transpose(-3, -2),
+                value.transpose(-3, -2),
+            )
 
         if bias_k is not None and bias_v is not None:
-            assert key.size(-1) == bias_k.size(-1) and key.size(-2) == bias_k.size(-2) and bias_k.size(-3) == 1, \
-                "Shape of bias_k is not supported"
-            assert value.size(-1) == bias_v.size(-1) and value.size(-2) == bias_v.size(-2) and bias_v.size(-3) == 1, \
-                "Shape of bias_v is not supported"
+            assert (
+                key.size(-1) == bias_k.size(-1)
+                and key.size(-2) == bias_k.size(-2)
+                and bias_k.size(-3) == 1
+            ), "Shape of bias_k is not supported"
+            assert (
+                value.size(-1) == bias_v.size(-1)
+                and value.size(-2) == bias_v.size(-2)
+                and bias_v.size(-3) == 1
+            ), "Shape of bias_v is not supported"
             key = torch.cat([key, bias_k])
             value = torch.cat([value, bias_v])
             if attn_mask is not None:
                 attn_mask = torch.nn.functional.pad(attn_mask, (0, 1))
 
         tgt_len, head_dim = query.size(-3), query.size(-1)
-        assert query.size(-1) == key.size(-1) == value.size(-1), "The feature dim of query, key, value must be equal."
+        assert (
+            query.size(-1) == key.size(-1) == value.size(-1)
+        ), "The feature dim of query, key, value must be equal."
         assert key.size() == value.size(), "Shape of key, value must match"
         src_len = key.size(-3)
         batch_heads = max(query.size(-2), key.size(-2))
 
         # Scale query
-        query, key, value = query.transpose(-2, -3), key.transpose(-2, -3), value.transpose(-2, -3)
+        query, key, value = (
+            query.transpose(-2, -3),
+            key.transpose(-2, -3),
+            value.transpose(-2, -3),
+        )
         query = query * (float(head_dim) ** -0.5)
         if attn_mask is not None:
             if attn_mask.dim() != 3:
-                raise RuntimeError('attn_mask must be a 3D tensor.')
-            if (attn_mask.size(-1) != src_len) or (attn_mask.size(-2) != tgt_len) or \
-               (attn_mask.size(-3) != 1 and attn_mask.size(-3) != batch_heads):
-                raise RuntimeError('The size of the attn_mask is not correct.')
+                raise RuntimeError("attn_mask must be a 3D tensor.")
+            if (
+                (attn_mask.size(-1) != src_len)
+                or (attn_mask.size(-2) != tgt_len)
+                or (attn_mask.size(-3) != 1 and attn_mask.size(-3) != batch_heads)
+            ):
+                raise RuntimeError("The size of the attn_mask is not correct.")
             if attn_mask.dtype != torch.bool:
-                raise RuntimeError('Only bool tensor is supported for attn_mask')
+                raise RuntimeError("Only bool tensor is supported for attn_mask")
 
         # Dot product of q, k
         attn_output_weights = torch.matmul(query, key.transpose(-2, -1))
         if attn_mask is not None:
-            attn_output_weights.masked_fill_(attn_mask, -1e8,)
+            attn_output_weights.masked_fill_(
+                attn_mask,
+                -1e8,
+            )
         attn_output_weights = torch.nn.functional.softmax(attn_output_weights, dim=-1)
-        attn_output_weights = torch.nn.functional.dropout(attn_output_weights, p=self.dropout, training=self.training)
+        attn_output_weights = torch.nn.functional.dropout(
+            attn_output_weights, p=self.dropout, training=self.training
+        )
         attn_output = torch.matmul(attn_output_weights, value)
 
         if self.batch_first:
@@ -219,10 +271,9 @@ class InProjContainer(torch.nn.Module):
         self.key_proj = key_proj
         self.value_proj = value_proj
 
-    def forward(self,
-                query: torch.Tensor,
-                key: torch.Tensor,
-                value: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(
+        self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         r"""Projects the input sequences using in-proj layers. query/key/value are simply passed to
         the forward func of query/key/value_proj, respectively.
         Args:
