@@ -6,7 +6,7 @@ from client.client import SocketIOClient
 from client.agent import CustomAgentBase
 
 # CustomAgentBase を継承して，
-# custom_act()を編集して麻雀AIを実装してください．
+# custom_act()を編集してコイコイAIを実装してください．
 
 class MyAgent(CustomAgentBase):
     def __init__(self):
