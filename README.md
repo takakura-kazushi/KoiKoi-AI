@@ -47,6 +47,7 @@ $ python3 sample_client.py
 Enter mode (1 for playing against AI, 2 for playing against another client): 
 ```
 と聞かれるのでモードを半角数字で入力してください！
+モード1はランダムに返すエージェントとの対戦で、2は自作AI同士で対戦できます！
 
 ```
 Enter number of games to play: 
