@@ -9,7 +9,7 @@ Created on Sun Jul  4 21:11:56 2021
 import random
 import numpy as np
 
-import koikoigame
+from koikoigame import koikoigame
 import tqdm
 
 

@@ -16,7 +16,7 @@ import time
 import pickle
 import multiprocessing
 
-import koikoigame
+from koikoigame import koikoigame
 import base_models.koikoilearn as koikoilearn
 from base_models.koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
 

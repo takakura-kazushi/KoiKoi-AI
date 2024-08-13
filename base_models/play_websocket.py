@@ -1,7 +1,7 @@
 import json
 import asyncio
 import websockets
-from koikoigame import KoiKoiGameState
+from koikoigame.koikoigame import KoiKoiGameState
 from base_models.koikoilearn import AgentForTest
 
 # from ..client.agent import

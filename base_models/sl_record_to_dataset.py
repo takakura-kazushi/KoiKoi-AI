@@ -6,7 +6,7 @@ Created on Wed Aug 18 08:55:08 2021
 @author: guansanghai
 """
 
-import koikoigame
+from koikoigame import koikoigame
 import json
 import pickle
 import os

@@ -7,7 +7,7 @@ Created on Sat Jun 19 23:58:43 2021
 """
 
 import os
-from koikoigame import KoiKoiGameState
+from koikoigame.koikoigame import KoiKoiGameState
 from base_models.koikoilearn import AgentForTest
 
 # import koikoigui as gui
