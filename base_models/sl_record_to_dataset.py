@@ -179,7 +179,7 @@ if __name__ == "__main__":
     for path in ["dataset", "dataset/discard", "dataset/pick", "dataset/koikoi"]:
         if not os.path.isdir(path):
             os.mkdir(path)
-    source_folder = "gamerecords_dataset"
+    source_folder = "../gamerecords_dataset"
     filename_list = [str(ii) for ii in range(1, 201)]
     for filename in filename_list:
         path = f"{source_folder}/{filename}.json"
