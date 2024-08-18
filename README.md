@@ -24,6 +24,15 @@ Koi-Koi is consisted by multiple rounds and both players start with equal points
 
 ![Yaku List](/markdown/koikoi_yaku.png)
 
+
+# 対戦を回す前にkoikoigameのpip-installを行う
+
+自作ライブラリをインポートするために`koikoigame`に入り、
+```
+pip install -e .
+```
+を行いましょう。これを行ったら次へ進んでください。
+
 # socket通信の回し方
 
 自作AIを用いてAgent側と対戦するとき、または自作AI同士で対戦するときのやりかた(singularity shellに入った後)
