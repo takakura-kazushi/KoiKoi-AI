@@ -1,10 +1,14 @@
-import sys
 import os
 import random
+import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from client.client import SocketIOClient
+
+import torch
+
 from client.agent import CustomAgentBase
+from client.client import SocketIOClient
+from our_models.koikoinets import load_models
 
 # CustomAgentBase を継承して，
 # custom_act()を編集してコイコイAIを実装してください．
@@ -13,11 +17,27 @@ from client.agent import CustomAgentBase
 class MyAgent(CustomAgentBase):
     def __init__(self):
         super().__init__()
+        self.discard_model, self.pick_model, self.koikoi_model = load_models()
 
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
-        # ランダムに取れる行動をする
-        return random.choice(observation.legal_actions())
+
+        # てっちゃんへ やってほしいこと
+        # `x` と `action_type` を作る
+        # observationをもとにする
+        # `x` は torch.Tensor
+        # `action_type` は "discard", "pick", "koikoi" のどれか
+
+        if action_type == "discard":
+            decided_action = self.discard_model.decide_action(x)
+        elif action_type == "pick":
+            decided_action = self.pick_model.decide_action(x)
+        elif action_type == "koikoi":
+            decided_action = self.koikoi_model.decide_action(x)
+        else:
+            raise NotImplementedError
+
+        return decided_action
 
 
 if __name__ == "__main__":
