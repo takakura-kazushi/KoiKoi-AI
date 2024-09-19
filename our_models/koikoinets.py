@@ -17,7 +17,7 @@ import torch.nn.functional as F
 NetParameter = {"nInput": 300, "nEmb": 256, "nFw": 512, "nAttnHead": 4, "nLayer": 2}
 
 
-def load_models() -> tuple[nn.Model, nn.Model, nn.Model]:
+def load_models() -> tuple[nn.Module, nn.Module, nn.Module]:
     """モデルを読み込む関数
 
     Returns:
