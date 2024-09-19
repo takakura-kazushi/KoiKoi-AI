@@ -2,6 +2,7 @@
 """
 improved by KateSawada
 """
+from __future__ import annotations
 from typing import Any, Type
 
 import torch  # 1.8.1
@@ -17,13 +18,30 @@ import torch.nn.functional as F
 NetParameter = {"nInput": 300, "nEmb": 256, "nFw": 512, "nAttnHead": 4, "nLayer": 2}
 
 
-def load_models() -> tuple[nn.Module, nn.Module, nn.Module]:
+def load_models() -> tuple[KoiKoiModelBase, KoiKoiModelBase, KoiKoiModelBase]:
     """モデルを読み込む関数
 
     Returns:
-        tuple[nn.Model, nn.Model, nn.Model]: 順番に，Discard, Pick, Koikoi
+        tuple[KoiKoiModelBase, KoiKoiModelBase, KoiKoiModelBase]: 順番に，Discard, Pick, Koikoi
     """
     return DiscardModel(), PickModel(), KoiKoiModel()
+
+
+class KoiKoiModelBase(nn.Module):
+    def __init__(self):
+        super(KoiKoiModelBase, self).__init__()
+
+def decide_action(self, x: torch.Tensor, legal_actions: list) -> Any:
+        """モデルの出力に基づいて行動をひとつ選ぶ
+
+        Args:
+            x (torch.Tensor): モデルの
+            legal_actions (list): observation.legal_actions
+
+        Returns:
+            Any: _description_
+        """
+        return legal_actions[0]
 
 class KoiKoiEncoderBlock(nn.Module):
     def __init__(self, nInput, nEmb, nFw, nAttnHead, nLayer):
@@ -41,7 +59,7 @@ class KoiKoiEncoderBlock(nn.Module):
         x = x.permute(1, 2, 0)
         return x
 
-class DiscardModel(nn.Module):
+class DiscardModel(KoiKoiModelBase):
     def __init__(self):
         super(DiscardModel, self).__init__()
         self.encoder_block = KoiKoiEncoderBlock(**NetParameter)
@@ -52,20 +70,8 @@ class DiscardModel(nn.Module):
         x = self.out(x).squeeze(1)
         return x
 
-    def decide_action(self, x: torch.Tensor, legal_actions: list) -> Any:
-        """モデルの出力に基づいて行動をひとつ選ぶ
 
-        Args:
-            x (torch.Tensor): モデルの
-            legal_actions (list): observation.legal_actions
-
-        Returns:
-            Any: _description_
-        """
-        return legal_actions[0]
-
-
-class PickModel(nn.Module):
+class PickModel(KoiKoiModelBase):
     def __init__(self):
         super(PickModel, self).__init__()
         self.encoder_block = KoiKoiEncoderBlock(**NetParameter)
@@ -76,20 +82,8 @@ class PickModel(nn.Module):
         x = self.out(x).squeeze(1)
         return x
 
-    def decide_action(self, x: torch.Tensor, legal_actions: list) -> Any:
-        """モデルの出力に基づいて行動をひとつ選ぶ
 
-        Args:
-            x (torch.Tensor): モデルの
-            legal_actions (list): observation.legal_actions
-
-        Returns:
-            Any: _description_
-        """
-        return legal_actions[0]
-
-
-class KoiKoiModel(nn.Module):
+class KoiKoiModel(KoiKoiModelBase):
     def __init__(self):
         super(KoiKoiModel, self).__init__()
         self.encoder_block = KoiKoiEncoderBlock(**NetParameter)
@@ -99,18 +93,6 @@ class KoiKoiModel(nn.Module):
         x = self.encoder_block(x)
         x = self.out(x[:, :, [0, 1]]).squeeze(1)
         return x
-
-    def decide_action(self, x: torch.Tensor, legal_actions: list) -> Any:
-        """モデルの出力に基づいて行動をひとつ選ぶ
-
-        Args:
-            x (torch.Tensor): モデルの
-            legal_actions (list): observation.legal_actions
-
-        Returns:
-            Any: _description_
-        """
-        return legal_actions[0]
 
 
 class TargetQNet(nn.Module):
