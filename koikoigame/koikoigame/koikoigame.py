@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from enum import Enum
 from typing import List, Tuple, Dict
+import pickle
 
 
 class DefaultVar:
@@ -1168,5 +1169,8 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         observation["koikoi"] = self.round_state.koikoi
         observation['show'] = self.round_state.show
         observation["legal_action"] = self.legal_action
-
+        # tensorからnumpyにしてpickleにしてシリアライズする
+        numpy_data= self.feature_tensor.numpy()
+        serialized_numpy = pickle.dumps(numpy_data)
+        observation['feature_tensor'] = serialized_numpy
         return observation

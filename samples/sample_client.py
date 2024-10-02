@@ -1,6 +1,8 @@
 import sys
 import os
 import random
+import pickle
+import torch
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from client.client import SocketIOClient
@@ -16,6 +18,11 @@ class MyAgent(CustomAgentBase):
 
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
+        # tensor情報を盤面から読み取る必要がある場合には次のように取得してください。
+        recieved_json_data = pickle.loads(observation['feature_tensor'])
+        feature_tensor = torch.from_numpy(recieved_json_data)
+        
+        
         # ランダムに取れる行動をする
         return random.choice(observation.legal_actions())
 

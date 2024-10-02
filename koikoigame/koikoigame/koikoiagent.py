@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import pprint
-from .koikoigame import KoiKoiGameState
+from koikoigame.koikoigame import KoiKoiGameState
 import tqdm
 
 
@@ -12,11 +12,8 @@ class Agent:
 
     def auto_action(self, observation):
         legal_action = observation["legal_action"]
-
-        # legal_actionの余地がない場合にはNoneを返す
-        if not legal_action:
-            print("No legal actions available")
-            return None
+        
+        
 
         chosen_action = random.choice(legal_action)
         print(f"AI chose action: {chosen_action} from legal actions: {legal_action}")
