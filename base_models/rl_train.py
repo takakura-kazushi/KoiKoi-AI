@@ -6,24 +6,27 @@ Created on Sat Oct 16 23:06:35 2021
 @author: guansanghai
 """
 
-import torch
-import numpy as np
+import multiprocessing
+import os
+import pickle
 import random
+import sys
+import time
 from collections import namedtuple
 
-import os
-import time
-import pickle
-import multiprocessing
+import numpy as np
+import torch
 
-from koikoigame.koikoigame import koikoigame
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import base_models.koikoilearn as koikoilearn
-from base_models.koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
+from base_models.koikoinet2L import DiscardModel, KoiKoiModel, PickModel, TargetQNet
+from koikoigame.koikoigame import koikoigame
 
 # training settings
 task_name = "point"  # wp, point
-log_path = f"log_rl_{task_name}.txt"
-rl_folder = f"model_rl_{task_name}"
+log_path = f"outputs/log_rl_{task_name}.txt"
+rl_folder = f"outputs/model_rl_{task_name}"
 
 # continue training with trained models
 start_loop_num = 1
@@ -36,7 +39,7 @@ saved_model_path = {
 assert task_name in ["point", "wp"]
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-with open("win_prob_mat.pkl", "rb") as f:
+with open("base_models/win_prob_mat.pkl", "rb") as f:
     win_prob_mat = pickle.load(f)
 
 TraceSlot = namedtuple("TraceSlot", ["key", "state", "action"])
@@ -252,7 +255,7 @@ def random_action_prob_scheduler(score):
 criterion = torch.nn.SmoothL1Loss(beta=30.0).to(device)
 
 master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
-master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
+master_agent = koikoilearn.BaseAgent(master_discard_net, master_pick_net, master_koikoi_net)
 
 
 # Monte-Carlo learning with self-play
@@ -261,7 +264,7 @@ if __name__ == "__main__":
         os.mkdir(rl_folder)
 
     cpu_count = 48
-    loop_games = 480
+    loop_games = 48 * 2
     n_core_games = loop_games // cpu_count
 
     batch_size = 256
@@ -295,7 +298,7 @@ if __name__ == "__main__":
     for key in ["discard", "pick", "koikoi"]:
         value_net[key].to(device)
 
-    play_agent = koikoilearn.Agent(
+    play_agent = koikoilearn.BaseAgent(
         action_net["discard"],
         action_net["pick"],
         action_net["koikoi"],
@@ -372,13 +375,13 @@ if __name__ == "__main__":
             }
             for model_key, net_key in type_dict.items():
                 action_net[net_key].load_state_dict(value_net[net_key].state_dict())
-            play_agent = koikoilearn.Agent(
+            play_agent = koikoilearn.BaseAgent(
                 action_net["discard"],
                 action_net["pick"],
                 action_net["koikoi"],
                 random_action_prob=random_action_prob_scheduler(score[-1]),
             )
-            test_agent = koikoilearn.Agent(
+            test_agent = koikoilearn.BaseAgent(
                 action_net["discard"], action_net["pick"], action_net["koikoi"]
             )
 
@@ -403,7 +406,7 @@ if __name__ == "__main__":
                 with open(f"{rl_folder}/optimizer.pickle", "wb") as f:
                     pickle.dump(optimizer, f)
                 print_log(f"{time_str()}  New model saved.", log_path)
-            play_agent = koikoilearn.Agent(
+            play_agent = koikoilearn.BaseAgent(
                 action_net["discard"],
                 action_net["pick"],
                 action_net["koikoi"],
