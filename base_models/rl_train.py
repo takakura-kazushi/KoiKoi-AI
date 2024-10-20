@@ -13,6 +13,7 @@ import random
 import sys
 import time
 from collections import namedtuple
+from tqdm import tqdm
 
 import numpy as np
 import torch
@@ -264,10 +265,11 @@ if __name__ == "__main__":
         os.mkdir(rl_folder)
 
     cpu_count = 48
-    loop_games = 48 * 2
+    loop_games = 48 * 100
     n_core_games = loop_games // cpu_count
 
     batch_size = 256
+    max_loop = 100000
 
     n_loop_action_net_update = 5
     n_loop_arena_test = 5
@@ -318,7 +320,7 @@ if __name__ == "__main__":
 
     score = [0.0]
     print_log(f"\n{time_str()} start training", log_path)
-    for loop in range(start_loop_num, 100000):
+    for loop in tqdm(range(start_loop_num, max_loop)):
         # buffer.extend(parallel_sampling(play_agent, n_core_games))
         #'''
         # paralell make trace
