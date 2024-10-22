@@ -6,15 +6,14 @@ Created on Tue Sep 14 21:57:57 2021
 @author: guansanghai
 """
 
-import torch  # 1.8.1
-import torch.utils.data as data
-
-import numpy as np
-
 import os
 import pickle
 
-from base_models.koikoinet2L import DiscardModel, PickModel, KoiKoiModel
+import numpy as np
+import torch  # 1.8.1
+import torch.utils.data as data
+
+from base_models.koikoinet2L import DiscardModel, KoiKoiModel, PickModel
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model_save_dir = "model_sl"
