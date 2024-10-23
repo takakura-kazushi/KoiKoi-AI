@@ -8,6 +8,10 @@ Created on Tue Sep 14 21:57:57 2021
 
 import os
 import pickle
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 
 import numpy as np
 import torch  # 1.8.1
