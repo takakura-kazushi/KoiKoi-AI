@@ -144,6 +144,8 @@ class KoiKoiSLTrainer:
 if __name__ == "__main__":
     task_name = "discard"
     dataset_path = f"../KoiKoi-AI/dataset/{task_name}/"  # FIXME: hard coded
+    # このrepoと同じ階層にKoiKoi-AIの元論文repoを置いてあるものとする
+    # そのため，このrepoは別名でcloneされている必要あり
     net_model = {"discard": DiscardModel, "pick": PickModel, "koikoi": KoiKoiModel}[
         task_name
     ]
