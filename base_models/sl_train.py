@@ -18,6 +18,7 @@ import torch  # 1.8.1
 import torch.utils.data as data
 
 from base_models.koikoinet2L import DiscardModel, KoiKoiModel, PickModel
+from base_models.yaku_distance import get_yaku
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model_save_dir = "model_sl"

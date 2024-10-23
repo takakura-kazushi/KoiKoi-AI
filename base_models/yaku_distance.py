@@ -1,4 +1,8 @@
 import json
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # from natsort import natsorted
 import re
@@ -6,8 +10,8 @@ from glob import glob
 
 from tqdm import tqdm
 
-import koikoigame
-from koikoigame import KoiKoiCard
+import koikoigame.koikoigame.koikoigame as koikoiganme
+from koikoigame.koikoigame.koikoigame import KoiKoiCard
 
 
 def list_to_tuple(nested_list):
@@ -57,7 +61,7 @@ def get_winner_yaku(filename: str):
     return results
 
 
-def get_yaku(pile):
+def get_yaku(pile: list):
     koikoi_num = 0  # ひとまずこの値を無視
     yaku = []
     # pile = set([tuple(card) for card in self.pile[player]])
