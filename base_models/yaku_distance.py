@@ -10,8 +10,8 @@ from glob import glob
 
 from tqdm import tqdm
 
-import koikoigame.koikoigame.koikoigame as koikoiganme
-from koikoigame.koikoigame.koikoigame import KoiKoiCard
+import koikoigame.koikoigame as koikoiganme
+from koikoigame.koikoigame import KoiKoiCard
 
 
 def list_to_tuple(nested_list):

@@ -6,16 +6,16 @@ Created on Tue Jun 22 22:30:19 2021
 @author: guansanghai
 """
 
-import random
+import io
 import json
+import pickle
+import random
 import time
+from enum import Enum
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
-from enum import Enum
-from typing import List, Tuple, Dict
-import pickle
-import io 
 
 
 class DefaultVar:
@@ -1101,14 +1101,14 @@ class KoiKoiGameState(KoiKoiGameStateBase):
     def feature_tensor(self):
         f = np.vstack(
             [
-                self.reserve_array,
-                self.game_status_array,
-                self.round_state.yaku_status_array,
-                self.round_state.card_suit_array,
-                self.round_state.card_init_position_array,
-                self.round_state.card_current_position_array,
-                self.round_state.card_pairing_state_array,
-                self.round_state.card_log_array,
+                self.reserve_array,  # (17, 48)
+                self.game_status_array,  # (10, 48)
+                self.round_state.yaku_status_array,  # (5 + 13, 48)
+                self.round_state.card_suit_array,  # (12, 48)
+                self.round_state.card_init_position_array,  # (3, 48)
+                self.round_state.card_current_position_array,  # (5, 48)
+                self.round_state.card_pairing_state_array,  # (2, 48)
+                self.round_state.card_log_array,  # (8 * 16, 48)
             ]
         )
         if self.round_state.state == "koikoi":
@@ -1168,12 +1168,12 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         observation["your_Dross"] = list(pile & KoiKoiCard.dross)
         observation["your_total_point"] = self.round_state.yaku_point(view)
         observation["koikoi"] = self.round_state.koikoi
-        observation['show'] = self.round_state.show
+        observation["show"] = self.round_state.show
         observation["legal_action"] = self.legal_action
         # tensorからnumpyにしてpickleにしてシリアライズする
-        numpy_data= self.feature_tensor.numpy()
+        numpy_data = self.feature_tensor.numpy()
         # Step 2: Numpy をバイナリデータに変換して辞書に格納
         buffer = io.BytesIO()
-        np.save(buffer,numpy_data)
-        observation['feature_tensor'] = buffer.getvalue()
+        np.save(buffer, numpy_data)
+        observation["feature_tensor"] = buffer.getvalue()
         return observation
