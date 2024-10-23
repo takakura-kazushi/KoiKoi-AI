@@ -21,7 +21,10 @@ from base_models.koikoinet2L import DiscardModel, KoiKoiModel, PickModel
 from base_models.yaku_distance import get_yaku
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model_save_dir = "model_sl"
+model_save_dir = "outputs/model_sl"
+
+if not os.path.exists(model_save_dir):
+    os.makedirs(model_save_dir)
 
 
 def get_filename_list(dataset_path, record_num_list):
@@ -139,16 +142,14 @@ class KoiKoiSLTrainer:
 
 
 if __name__ == "__main__":
-    pass
-
-    """
-    task_name = 'discard'
-    dataset_path = f'dataset/{task_name}/'
-    net_model = {'discard':DiscardModel,'pick':PickModel,'koikoi':KoiKoiModel}[task_name]
+    task_name = "discard"
+    dataset_path = f"../KoiKoi-AI/dataset/{task_name}/"  # FIXME: hard coded
+    net_model = {"discard": DiscardModel, "pick": PickModel, "koikoi": KoiKoiModel}[
+        task_name
+    ]
     trained_model_path = None
 
     trainer = KoiKoiSLTrainer(task_name)
     trainer.init_dataset(dataset_path, k_fold=5, test_fold=0, batch_size=512)
     trainer.init_model(net_model, trained_model_path)
-    trainer.train(epoch_num=20)
-    """
+    trainer.train(epoch_num=1)
