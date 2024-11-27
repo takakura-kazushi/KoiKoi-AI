@@ -4,6 +4,7 @@ import pickle
 import random
 import sys
 
+import numpy as np
 import torch
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -21,6 +22,11 @@ class MyAgent(CustomAgentBase):
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
         # tensor情報を盤面から読み取る必要がある場合には次のように取得してください。
+        # print(observation.keys())  # ['turn', 'state', 'op_total_point', 'op_yaku', 'op_Light', 'op_Seed', 'op_Ribbon', 'op_Dross', 'op_pile', 'field', 'your_hand', 'your_yaku', 'your_Light', 'your_Seed', 'your_Ribbon', 'your_Dross', 'your_total_point', 'koikoi', 'show', 'legal_action', 'feature_tensor']
+        buffer = io.BytesIO(observation["feature_tensor"])
+        loaded_numpy_array = np.load(buffer)
+        feature_tensor = torch.from_numpy(loaded_numpy_array)
+        # print(f"a{feature_tensor.shape}")  # torch.Size([300, 48])
 
         # ランダムに取れる行動をする
         return random.choice(observation.legal_actions())
