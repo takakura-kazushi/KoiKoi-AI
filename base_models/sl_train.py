@@ -222,7 +222,10 @@ class KoiKoiSLTrainer:
             # feature = (batch, 300, 48)
             output = self.model(feature.to(device))
             output = output.to(device)
-            yaku_loss = self.yaku_loss(feature_tensor=feature, model_output=output)
+            if self.w_yaku_loss != 0:
+                yaku_loss = self.yaku_loss(feature_tensor=feature, model_output=output)
+            else:
+                yaku_loss = 0
             loss = (
                 self.criterion(output, result.to(device)) + yaku_loss * self.w_yaku_loss
             )
@@ -268,6 +271,7 @@ def get_args():
         choices=["discard", "pick", "koikoi"],
     )
     parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument("--batch", type=int, default=512)
     return parser.parse_args()
 
 
@@ -286,6 +290,6 @@ if __name__ == "__main__":
     trained_model_path = None
 
     trainer = KoiKoiSLTrainer(task_name, w_yaku_loss=args.w_yaku_loss)
-    trainer.init_dataset(dataset_path, k_fold=5, test_fold=0, batch_size=512)
-    trainer.init_model(net_model, trained_model_path)
+    trainer.init_dataset(dataset_path, k_fold=5, test_fold=0, batch_size=args.batch)
+    trainer.init_model(net_model, trained_model_path, lr=0.0001)
     trainer.train(epoch_num=args.epochs)
