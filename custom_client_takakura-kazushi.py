@@ -96,16 +96,16 @@ class MyAgent(CustomAgentBase):
 if __name__ == "__main__":
     my_agent = MyAgent()  # 参加者が実装したプレイヤーをインスタンス化
 
-    # mode = int(
-    #     input(
-    #         "Enter mode (1 for playing against AI, 2 for playing against another client): "
-    #     )
-    # )
-    mode = 1
-    # num_games = int(input("Enter number of games to play: "))
-    num_games = 1
-    # player_name = input("Enter your player name: ")
-    player_name = 1
+    mode = int(
+        input(
+            "Enter mode (1 for playing against AI, 2 for playing against another client): "
+        )
+    )
+    # mode = 1
+    num_games = int(input("Enter number of games to play: "))
+    # num_games = 1
+    player_name = input("Enter your player name: ")
+    # player_name = 1
 
     sio_client = SocketIOClient(
         ip="localhost",
