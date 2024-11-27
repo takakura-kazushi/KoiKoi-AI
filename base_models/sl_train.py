@@ -170,9 +170,7 @@ class KoiKoiSLTrainer:
             ii for ii in range(1, record_num + 1) if ii % k_fold == test_fold
         ]
         test_dataset = KoiKoiSLDataset(dataset_path, test_record_index)
-        self.test_loader = data.DataLoader(
-            dataset=test_dataset, batch_size=len(test_dataset)
-        )
+        self.test_loader = data.DataLoader(dataset=test_dataset, batch_size=batch_size)
         return
 
     def init_model(self, net_model, transfer_model_path=None, lr=1e-3):
@@ -236,7 +234,7 @@ class KoiKoiSLTrainer:
                 self.optimizer.step()
 
             output = output.argmax(dim=1).cpu().detach().numpy()
-            result = result.cpu().numpy()
+            result = result.cpu().detach().numpy()
             acc_list.append(accuracy(output, result))
             loss_list.append(loss.item())
 
